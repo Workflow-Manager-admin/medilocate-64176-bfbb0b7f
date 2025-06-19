@@ -251,7 +251,8 @@ function MedicineReminderSystem() {
                     }}>{med.name} <span style={{
                       color:COLORS.subtle,
                       fontWeight:400,
-                      fontSize:13}}>({med.dosage})</span>
+                      fontSize:13}}>({
+                        med.dosage})</span>
                     </div>
                     <div style={{
                       fontSize:13, color:COLORS.subtle
