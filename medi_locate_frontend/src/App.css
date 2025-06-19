@@ -1,10 +1,19 @@
+/* Color palette for MediLocate (dark theme) */
 :root {
   --base-light: #00ffff;
   --base-dark: #00008b;
   --text-color: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --border-color: rgba(255, 255, 255, 0.1);
+  /* App-specific colors for components */
+  --primary: #ae4c69;
+  --secondary: #052fff;
+  --accent: #bc1ff4;
+  --dark-bg: #1c1d23;
+  --card-bg: #222333;
 }
+
+/* Apply dark background globally and improve text rendering */
 
 body {
   margin: 0;

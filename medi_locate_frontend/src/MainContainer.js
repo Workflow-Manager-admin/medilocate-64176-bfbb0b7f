@@ -401,44 +401,77 @@ function PharmacyLocator() {
 // -------- MAIN CONTAINER --------------
 
 function MainContainer() {
+  // Main app container, vertically and horizontally centered on all modern screens, responsive for mobile
   return (
     <div style={{
-      minHeight:"100vh", background:COLORS.background, color: COLORS.text, paddingBottom:28
+      minHeight: "100vh",
+      background: COLORS.background,
+      color: COLORS.text,
+      display: "flex",
+      flexDirection: "column"
     }}>
       {/* Navigation Bar */}
       <nav style={{
-        background: "#161722", color:COLORS.text,
-        padding: "21px 0 10px", marginBottom:30,
-        borderBottom:`2.5px solid ${COLORS.primary}`,
-        position:"sticky",top:0,zIndex:99
+        background: "#161722",
+        color: COLORS.text,
+        padding: "21px 0 10px",
+        marginBottom: 30,
+        borderBottom: `2.5px solid ${COLORS.primary}`,
+        position: "sticky",
+        top: 0,
+        zIndex: 99
       }}>
         <div style={{
-          maxWidth:960, margin:"0 auto", padding: "0 28px",
-          display:'flex',alignItems:'center',justifyContent:'space-between'
+          maxWidth: 960,
+          margin: "0 auto",
+          padding: "0 28px",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
           <span style={{
-            fontWeight:800,fontSize:22,letterSpacing:'-1.5px',color:COLORS.primary,
-            display:'flex',alignItems:'center',gap:7
+            fontWeight: 800,
+            fontSize: 22,
+            letterSpacing: '-1.5px',
+            color: COLORS.primary,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7
           }}>
-            <span style={{fontSize:28,color:COLORS.accent}}>💊</span> MediLocate
+            <span style={{ fontSize: 28, color: COLORS.accent }}>💊</span> MediLocate
           </span>
           <span style={{
-            fontSize:13, color:COLORS.text, background:COLORS.secondary, padding:'5px 16px',
-            borderRadius:16, fontWeight:600
+            fontSize: 13,
+            color: COLORS.text,
+            background: COLORS.secondary,
+            padding: '5px 16px',
+            borderRadius: 16,
+            fontWeight: 600
           }}>Dark Mode</span>
         </div>
       </nav>
-      {/* Main layout */}
-      <main>
+      {/* Main layout, centered both vertically & horizontally within the available space */}
+      <main style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
+      }}>
         <div style={{
-          maxWidth: 960, margin: "0 auto", padding: "0 28px"
+          width: "100%",
+          maxWidth: 960,
+          padding: "0 10px"
         }}>
-          <div style={{
-            display:'grid',
-            gridTemplateColumns:'1fr 1fr',
-            gap:36,
-            alignItems:'flex-start'
-          }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 36,
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
             <div>
               {/* Medicine Reminder System */}
               <MedicineReminderSystem />
@@ -451,10 +484,23 @@ function MainContainer() {
         </div>
       </main>
       <footer style={{
-        textAlign: "center", color: COLORS.subtle, fontSize: 14, marginTop:40, padding: "10px 0"
+        textAlign: "center",
+        color: COLORS.subtle,
+        fontSize: 14,
+        marginTop: 32,
+        padding: "10px 0"
       }}>
         &copy; {new Date().getFullYear()} MediLocate. For demo use only. | Design by KAVIA
       </footer>
+      {/* Responsive style (inline) to make grid stack on < 900px */}
+      <style>{`
+        @media (max-width: 900px) {
+          main > div > div {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
