@@ -1,4 +1,4 @@
-Write # Lightweight React Template for KAVIA
+ll Write # Lightweight React Template for KAVIA
 
 This project provides a minimal React template with a clean, modern UI and minimal dependencies.
 
