@@ -383,7 +383,7 @@ function PharmacyLocatorWithAddress() {
   ];
   // Default at Chennai center
   const DEFAULT_CENTER = { lat: 13.0827, lng: 80.2707 };
-  
+
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [address, setAddress] = useState('');
   const [searching, setSearching] = useState(false);
@@ -391,20 +391,49 @@ function PharmacyLocatorWithAddress() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [filteredPharmacies, setFilteredPharmacies] = useState(SAMPLE_PHARMACIES);
 
-  // Load Maps JS (just once)
-  useEffect(() => {
-    if (window.google && window.google.maps) {
-      setMapLoaded(true); return;
+  // --- Google Maps script loader: robust and idempotent ---
+  function loadGoogleMapsScript(cb) {
+    // Provide a clear error message in UI if API key is missing
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
+    if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
+      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
+      return;
     }
-    // Insert Maps script with a callback
     const scriptId = 'google-maps-script';
-    if (document.getElementById(scriptId)) { return; }
+    if (window.google && window.google.maps) {
+      cb && cb();
+      return;
+    }
+    if (document.getElementById(scriptId)) {
+      document.getElementById(scriptId).addEventListener('load', cb, { once: true });
+      return;
+    }
     const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDEMO-DEMO-KEY-CHANGEME&callback=initMap';
-    script.async = true; script.defer = true; script.id = scriptId;
+    script.id = scriptId;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+    script.async = true; script.defer = true;
+    script.onload = () => { cb && cb(); };
+    script.onerror = () => setErrorMsg("Google Maps failed to load. Check internet, ad blockers, or API key restrictions.");
     window.initMap = () => setMapLoaded(true);
     document.body.appendChild(script);
-    return () => { delete window.initMap; };// cleanup
+  }
+
+  // Load Maps JS (just once, robustly)
+  useEffect(() => {
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
+    if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
+      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
+      return;
+    }
+    if (window.google && window.google.maps) {
+      setMapLoaded(true);
+      return;
+    }
+    loadGoogleMapsScript(() => {
+      setMapLoaded(true);
+    });
+    return () => { delete window.initMap; };
+    // eslint-disable-next-line
   }, []);
 
   // Google Map ref
@@ -416,23 +445,32 @@ function PharmacyLocatorWithAddress() {
 
   // When map loads or center/filteredPharmacies update, draw map/markers
   useEffect(() => {
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
+    if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
+      return; // Do not try to draw if API key is invalid
+    }
     if (!mapLoaded || !window.google || !mapRef.current) return;
     // If no map yet, create
     if (!mapInstance.current) {
-      mapInstance.current = new window.google.maps.Map(mapRef.current, {
-        center, zoom: 13,
-        styles: [
-          { elementType: "geometry", stylers: [{ color: "#232436" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2d" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#a9aacb" }] },
-          { featureType: "road", elementType: "geometry", stylers: [{ color: "#3c3b59" }] },
-          { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#47476b" }] },
-          { featureType: "poi", elementType: "geometry", stylers: [{ color: "#282c3e" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#1c314a" }] }
-        ],
-        disableDefaultUI: true, zoomControl: true, streetViewControl: false
-      });
+      try {
+        mapInstance.current = new window.google.maps.Map(mapRef.current, {
+          center, zoom: 13,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#232436" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2d" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#a9aacb" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#3c3b59" }] },
+            { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#47476b" }] },
+            { featureType: "poi", elementType: "geometry", stylers: [{ color: "#282c3e" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#1c314a" }] }
+          ],
+          disableDefaultUI: true, zoomControl: true, streetViewControl: false
+        });
+      } catch (e) {
+        setErrorMsg("Google Maps could not be rendered. See browser console for details.");
+      }
     }
+    if (!mapInstance.current) return;
     // Recentering and re-populate markers
     mapInstance.current.setCenter(center);
     // Remove existing markers
@@ -440,21 +478,25 @@ function PharmacyLocatorWithAddress() {
     markersRef.current = [];
     // Add each marker
     filteredPharmacies.forEach(ph => {
-      const marker = new window.google.maps.Marker({
-        position: { lat: ph.lat, lng: ph.lng },
-        map: mapInstance.current,
-        title: ph.name,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: COLORS.primary,
-          fillOpacity: 0.95,
-          strokeWeight: 2,
-          strokeColor: COLORS.accent
-        },
-        label: { text: "💊", fontSize: "18px", color: COLORS.primary }
-      });
-      markersRef.current.push(marker);
+      try {
+        const marker = new window.google.maps.Marker({
+          position: { lat: ph.lat, lng: ph.lng },
+          map: mapInstance.current,
+          title: ph.name,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: COLORS.primary,
+            fillOpacity: 0.95,
+            strokeWeight: 2,
+            strokeColor: COLORS.accent
+          },
+          label: { text: "💊", fontSize: "18px", color: COLORS.primary }
+        });
+        markersRef.current.push(marker);
+      } catch (e) {
+        // Marker may error if map API failed. Ignore for now.
+      }
     });
   }, [mapLoaded, center, filteredPharmacies]);
 
@@ -465,7 +507,12 @@ function PharmacyLocatorWithAddress() {
     setErrorMsg('');
     // Use Google Maps Geocoding API
     try {
-      const API_KEY = "AIzaSyDEMO-DEMO-KEY-CHANGEME";
+      const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
+      if (!API_KEY || API_KEY.indexOf("DEMO-KEY-CHANGEME") !== -1) {
+        setErrorMsg("Google Maps API key is invalid or missing. Set REACT_APP_GOOGLE_MAPS_API_KEY in environment.");
+        setSearching(false);
+        return;
+      }
       const enc = encodeURIComponent(address.trim());
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${enc}&key=${API_KEY}`;
       const resp = await fetch(url);
@@ -477,10 +524,10 @@ function PharmacyLocatorWithAddress() {
       function haversineDistance(lat1, lng1, lat2, lng2) {
         function deg2rad(deg) { return deg * (Math.PI / 180); }
         const R = 6371; // Earth km
-        const dLat = deg2rad(lat2-lat1);
-        const dLng = deg2rad(lng2-lng1);
-        const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2)) * Math.sin(dLng/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dLat = deg2rad(lat2 - lat1);
+        const dLng = deg2rad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       }
       setFilteredPharmacies(
         SAMPLE_PHARMACIES
@@ -536,7 +583,12 @@ function PharmacyLocatorWithAddress() {
         </button>
       </form>
       <div style={{ color: COLORS.accent, fontSize:13, minHeight:21, marginBottom:8 }}>
+        {/* Error message (map or API) */}
         {errorMsg}
+        {/* If Google Maps API not loaded and no error, show loader */}
+        {!mapLoaded && !errorMsg && (
+          <span>Loading Google Map...</span>
+        )}
       </div>
       <div
         ref={mapRef}
@@ -549,7 +601,7 @@ function PharmacyLocatorWithAddress() {
           overflow: "hidden",
           background: "#191932",
           boxShadow: "0 1px 3px rgba(174,76,105,0.10)"
-        }}
+        }} 
       >
         {/* Google Map injected here */}
         {!mapLoaded && (
@@ -561,7 +613,10 @@ function PharmacyLocatorWithAddress() {
             color: COLORS.accent,
             background: "#242546"
           }}>
-            Loading Google Map...
+            {errorMsg
+              ? <span style={{ color: "#ff5656" }}>{errorMsg}</span>
+              : "Loading Google Map..."
+            }
           </div>
         )}
       </div>
