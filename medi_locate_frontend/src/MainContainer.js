@@ -280,61 +280,118 @@ function MedicineReminderSystem() {
 
 // --------- Pharmacy Locator Components ------------
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * PharmacyLocator (Google Maps version): Shows all pharmacies in Chennai as markers on the map.
+ * Preserves dark theme and color palette.
+ * For live map experience, we use the Google Maps JavaScript API (client-side).
+ * For demo, a static list of notable pharmacies in Chennai are marked.
+ * In a full production, pharmacy list would come from a backend or APIs (e.g., Google Places).
+ */
 function PharmacyLocator() {
-  // API Key -- You must replace this with your own valid LocationIQ key for production/deployment.
-  const LOCATIONIQ_API_KEY = "pk.9a705b331f67092e02e6ce27bd6fdbe9"; // Demo key subject to rate limits
+  // Hard-code a few sample pharmacy locations in Chennai for the demo.
+  const chennaiPharmacies = [
+    { name: "Apollo Pharmacy - Anna Salai", lat: 13.060422, lng: 80.249583 },
+    { name: "Medplus - T Nagar", lat: 13.039799, lng: 80.233371 },
+    { name: "Guardian Pharmacy - Velachery", lat: 12.971903, lng: 80.220772 },
+    { name: "Apollo Pharmacy - Adyar", lat: 13.006935, lng: 80.257257 },
+    { name: "Medplus - Vadapalani", lat: 13.049014, lng: 80.213894 },
+    { name: "Trust Chemists - Nungambakkam", lat: 13.057974, lng: 80.242378 },
+    { name: "Sanjeevani - Kilpauk", lat: 13.080460, lng: 80.247860 },
+    { name: "Apollo Pharmacy - Perambur", lat: 13.118684, lng: 80.233890 }
+  ];
 
-  const [position, setPosition] = useState(null); // {lat, lon}
-  const [pharmacies, setPharmacies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [locationErr, setLocationErr] = useState(null);
+  // Chennai city center: 13.0827° N, 80.2707° E
+  const CHENNAI_CENTER = { lat: 13.0827, lng: 80.2707 };
 
-  // Try geolocating user
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Load Google Maps JS API via script tag only once
   useEffect(() => {
-    if (!position) {
-      if (!navigator.geolocation) {
-        setLocationErr("Location is not supported.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        pos => setPosition({lat: pos.coords.latitude, lon: pos.coords.longitude}),
-        err => setLocationErr("Unable to detect location.")
-      );
+    if (window.google && window.google.maps) {
+      setMapLoaded(true);
+      return;
     }
-  }, [position]);
+    // Add the script
+    const scriptId = 'google-maps-script';
+    if (document.getElementById(scriptId)) {
+      return; // already loading
+    }
+    const script = document.createElement('script');
+    // Note: For production, replace the key below with a PROPER key with "Maps JavaScript API" enabled, with proper referer restrictions.
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDEMO-DEMO-KEY-CHANGEME&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    script.id = scriptId;
+    window.initMap = () => setMapLoaded(true);
+    document.body.appendChild(script);
+    // Clean up
+    return () => { delete window.initMap; };
+  }, []);
 
-  // Load pharmacies when geolocated
+  // Reference to the map DOM
+  const mapRef = React.useRef();
+
   useEffect(() => {
-    if (position && pharmacies.length === 0) {
-      setIsLoading(true);
-      fetch(`https://us1.locationiq.com/v1/nearby.php?key=${LOCATIONIQ_API_KEY}&lat=${position.lat}&lon=${position.lon}&tag=pharmacy&radius=3000&format=json`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setPharmacies(data);
-          } else {
-            setLocationErr("No pharmacies found nearby.");
-          }
-          setIsLoading(false);
-        }).catch(() => {
-          setLocationErr("Error fetching pharmacy data.");
-          setIsLoading(false);
-        });
-    }
-  }, [position, pharmacies.length, LOCATIONIQ_API_KEY]);
-
-  // Google Static Map URL (not interactive, but sufficient for simple demo and public client)
-  function getMapUrl() {
-    // Map with user and pharmacy markers
-    let center = position ? `${position.lat},${position.lon}` : "0,0";
-    let markers = `color:0x${COLORS.primary.substring(1)}|label:U|${center}`;
-    pharmacies.slice(0,10).forEach(ph => {
-      markers += `&markers=color:0x${COLORS.accent.substring(1)}|label:P|${ph.lat},${ph.lon}`;
+    if (!mapLoaded || !window.google || !mapRef.current) return;
+    // Create the map
+    // Custom dark theme for Google Maps
+    const map = new window.google.maps.Map(mapRef.current, {
+      center: CHENNAI_CENTER,
+      zoom: 12.6,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#232436" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2d" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#a9aacb" }] },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#3c3b59" }]
+        },
+        {
+          featureType: "road",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#47476b" }]
+        },
+        {
+          featureType: "poi",
+          elementType: "geometry",
+          stylers: [{ color: "#282c3e" }]
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#1c314a" }]
+        }
+      ],
+      disableDefaultUI: true,
+      zoomControl: true,
+      streetViewControl: false
     });
-    let width = 600, height = 260;
-    return `https://maps.locationiq.com/v3/staticmap?key=${LOCATIONIQ_API_KEY}&center=${center}&zoom=14&size=${width}x${height}&maptype=dark&markers=${markers}`;
-  }
+
+    // Mark all pharmacies
+    chennaiPharmacies.forEach(ph => {
+      new window.google.maps.Marker({
+        position: { lat: ph.lat, lng: ph.lng },
+        map,
+        title: ph.name,
+        icon: {
+          // Pinkish (primary color) marker dot for pharmacy
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: COLORS.primary,
+          fillOpacity: 0.95,
+          strokeWeight: 2,
+          strokeColor: COLORS.accent
+        },
+        label: {
+          text: "💊",
+          fontSize: "18px",
+          color: COLORS.primary
+        }
+      });
+    });
+  }, [mapLoaded]);
 
   return (
     <div style={{
@@ -343,57 +400,71 @@ function PharmacyLocator() {
       padding: 24,
       boxShadow:'0 2px 8px rgba(0,0,0,0.13)'
     }}>
-      <h2 style={{color:COLORS.secondary,margin:'0 0 8px'}}>Nearby Pharmacy Locator</h2>
+      <h2 style={{color:COLORS.secondary,margin:'0 0 8px'}}>Chennai Pharmacy Map</h2>
       <div style={{
         marginBottom: 12,
         color: COLORS.subtle,
         fontSize: 15
-      }}>Find nearby pharmacies using your device location.</div>
-      {position && (
-        <div style={{marginBottom:14, fontSize:13, color:COLORS.accent}}>
-          <span>📍</span> Your location detected ({position.lat.toFixed(4)}, {position.lon.toFixed(4)})
-        </div>
-      )}
-      {isLoading && <div style={{color:COLORS.subtle}}>Loading pharmacies...</div>}
-      {locationErr && <div style={{color:COLORS.missed, fontWeight:600}}>{locationErr}</div>}
-      {!isLoading && position && (
-        <>
+      }}>Find all notable pharmacies mapped across Chennai. Map style &pins use MediLocate color palette.</div>
+      <div
+        ref={mapRef}
+        style={{
+          width: "100%",
+          maxWidth: 600,
+          height: 310,
+          margin: "0 auto 16px",
+          borderRadius: 12,
+          overflow: "hidden",
+          background: "#191932",
+          boxShadow: "0 1px 3px rgba(174,76,105,0.10)"
+        }}
+      >
+        {/* Google Map injected here */}
+        {!mapLoaded && (
           <div style={{
-            width:'100%', maxWidth:600, margin:'0 auto 18px', background:COLORS.background,
-            borderRadius:9,overflow:'hidden',boxShadow:'0 1px 3px rgba(82,47,244,0.08)'
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: COLORS.accent,
+            background: "#242546"
           }}>
-            <img
-              src={getMapUrl()}
-              alt="Nearby pharmacies map"
-              style={{width:'100%',maxWidth:'100%',height:260,display:'block'}}
-            />
+            Loading Google Map...
           </div>
-          <div style={{fontWeight:500,color:COLORS.primary,marginBottom:4}}>Pharmacies nearby:</div>
-          <ul style={{listStyle:'none',padding:0,margin:0}}>
-            {pharmacies.slice(0,6).map(p => (
-              <li key={p.osm_id} style={{
-                background:COLORS.background,
-                borderLeft:`4px solid ${COLORS.accent}`,
-                padding:'11px 9px',borderRadius:6,
-                margin:'0 0 10px',fontWeight:430,fontSize:15,display:'flex',alignItems:'center',gap:10}}>
-                <span style={{fontSize:18,color:COLORS.accent}}>🏥</span>
-                <span>
-                  {p.name || <em>Unnamed Pharmacy</em>}
-                  <span style={{display:'block',fontSize:13,color:COLORS.subtle,marginTop:2}}>
-                    {p.dist ? (p.dist/1000).toFixed(2)+'km away' : ''}
-                  </span>
-                </span>
-              </li>
-            ))}
-            {pharmacies.length===0 && (
-              <li style={{color:COLORS.subtle,fontSize:14}}>No pharmacy data yet.</li>
-            )}
-          </ul>
-        </>
-      )}
-      {!position && !locationErr && (
-        <div style={{color:COLORS.subtle, marginBottom:8}}>Detecting device location...</div>
-      )}
+        )}
+      </div>
+      <div style={{
+        fontWeight: 500, color: COLORS.primary, marginBottom: 8
+      }}>
+        Pharmacies in Chennai:
+      </div>
+      <ul style={{listStyle:'none',padding:0,margin:0}}>
+        {chennaiPharmacies.map((ph, idx) => (
+          <li key={idx} style={{
+            background: COLORS.background,
+            borderLeft:`4px solid ${COLORS.accent}`,
+            padding:'11px 9px',borderRadius:6,
+            margin:'0 0 10px',fontWeight:430,fontSize:15,display:'flex',alignItems:'center',gap:10
+          }}>
+            <span style={{fontSize:18,color:COLORS.accent}}>💊</span>
+            <span>
+              <strong>{ph.name}</strong>
+              <span style={{
+                display:'block',
+                fontSize:13,
+                color:COLORS.subtle,
+                marginTop:2
+              }}>
+                ({ph.lat.toFixed(4)}, {ph.lng.toFixed(4)})
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div style={{marginTop:12, fontSize:12, color:COLORS.subtle}}>
+        (For best experience, use production Google Maps API key. 
+        Pharmacy data is for illustration; real app would pull live data.)
+      </div>
     </div>
   );
 }
