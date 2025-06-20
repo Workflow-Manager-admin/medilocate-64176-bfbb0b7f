@@ -8,7 +8,7 @@ import React, { useState } from "react";
  */
 // PUBLIC_INTERFACE
 function Homepage() {
-  // Dark theme palette for consistency with rest of app
+  // Color palette for dark theme consistency with MediLocate
   const palette = {
     primary: "#ae4c69",
     secondary: "#052fff",
@@ -55,28 +55,28 @@ function Homepage() {
     );
   }
 
-  // Google Map API Key provided for embedding
-  const MAP_API_KEY = "AIzaSyBtMQNFdZbNfN7urxPy2oxDVtG_3ozXfes";
-  // Show a centered Google Map (responsive, dark mode)
+  // Render a Google Map using provided API key, immediately under reminder list
+  // (No extra pharmacy locator logic.)
+  const GOOGLE_MAP_API_KEY = "AIzaSyAqs1simMQ3jHmkYRNXTDF6_2_ZOEyyZZA";
   function GoogleMapEmbed() {
+    // We just embed an iframe, no map search for pharmacies (no locator UI/logic)
     return (
       <div
         style={{
           width: "100%",
           maxWidth: 660,
-          margin: "36px auto 0",
+          margin: "40px auto 0",
           background: palette.card,
           borderRadius: 14,
           overflow: "hidden",
           boxShadow: "0 2px 14px rgba(52,52,90,0.11)",
         }}
       >
-        {/* Google Maps Embed API with dark map styling */}
         <iframe
-          title="Google Maps Live"
-          loading="lazy"
+          title="Google Map"
           width="100%"
           height="320"
+          loading="lazy"
           style={{
             border: "none",
             display: "block",
@@ -87,7 +87,7 @@ function Homepage() {
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
           src={
-            `https://www.google.com/maps/embed/v1/search?key=${MAP_API_KEY}&q=pharmacy&zoom=13&maptype=roadmap`
+            `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`
           }
         />
         <div
@@ -101,8 +101,10 @@ function Homepage() {
             textAlign: "left"
           }}
         >
-          <span style={{ color: palette.accent, marginRight: 8 }}>🧭 Live Google Map:</span>
-          <span style={{ color: palette.subtle, fontSize: 14 }}>Nearby pharmacies powered by Google Maps</span>
+          <span style={{ color: palette.accent, marginRight: 8 }}>🗺️ Google Map</span>
+          <span style={{ color: palette.subtle, fontSize: 14 }}>
+            Map (for reference), styled to MediLocate dark mode
+          </span>
         </div>
       </div>
     );
@@ -117,7 +119,6 @@ function Homepage() {
         fontFamily: `'Inter','Roboto','Helvetica','Arial',sans-serif'`
       }}
     >
-      {/* Navigation Bar */}
       <nav
         style={{
           background: "#161722",
@@ -150,7 +151,7 @@ function Homepage() {
               gap: 7
             }}
           >
-            <span style={{ fontSize: 28, color: palette.accent }}>💊</span>{" "}
+            <span style={{ fontSize: 28, color: palette.accent }}>💊</span>
             MediLocate
           </span>
           <span
@@ -167,49 +168,50 @@ function Homepage() {
           </span>
         </div>
       </nav>
-
-      {/* Centered vertical and horizontal layout */}
+      {/* Centered flex layout for reminders and map */}
       <div
         style={{
-          minHeight: "calc(100vh - 105px - 62px)", // header/footer
+          minHeight: "calc(100vh - 105px - 62px)",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: "18px 0 0",
+          padding: "24px 0 0",
         }}
       >
-        {/* Medicine Reminder Card */}
+        {/* Centered reminder list card */}
         <div
           style={{
             background: palette.card,
-            borderRadius: 14,
-            boxShadow: "0 2px 14px rgba(174,76,105,0.07)",
-            padding: "37px 28px 29px 28px",
+            borderRadius: 16,
+            boxShadow: "0 2px 12px rgba(174,76,105,0.06)",
+            padding: "38px 34px 34px",
             width: "100%",
-            maxWidth: 440,
+            maxWidth: 470,
             margin: "0 auto",
             display: "flex",
             flexDirection: "column",
             alignItems: "center"
           }}
         >
-          <h2 style={{
-            color: palette.primary,
-            margin: "0 0 13px 0",
-            letterSpacing: "-0.5px"
-          }}>
+          <h2
+            style={{
+              color: palette.primary,
+              margin: "0 0 14px 0",
+              letterSpacing: "-1px"
+            }}
+          >
             Today's Medicines
           </h2>
           <div
             style={{
               fontSize: 16,
               color: palette.subtle,
-              marginBottom: 20,
+              marginBottom: 22,
               textAlign: "center"
             }}
           >
-            Stay on track with your medication schedule. Mark each as taken once done!
+            Stay on track with your medication schedule.<br/>Mark each as taken when done!
           </div>
           {medicines.length === 0 && (
             <div
@@ -246,7 +248,7 @@ function Homepage() {
                   padding: "13px 10px",
                   boxShadow: med.taken
                     ? "none"
-                    : "0 1.5px 5px rgba(174,76,105,0.06)"
+                    : "0 2px 8px rgba(174,76,105,0.06)"
                 }}
               >
                 <div
@@ -258,7 +260,7 @@ function Homepage() {
                 >
                   <span
                     style={{
-                      fontSize: 22,
+                      fontSize: 23,
                       color: med.taken ? palette.taken : palette.primary
                     }}
                   >
