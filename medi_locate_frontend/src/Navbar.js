@@ -81,6 +81,23 @@ function Navbar({ selected = "home" }) {
         <button
           className="btn"
           style={{
+            marginRight: 5,
+            background: selected === "add" ? "#ae4c69" : "#222238",
+            color: selected === "add" ? "#fff" : "#bc1ff4",
+            fontSize: 16,
+            border: "none",
+            borderRadius: 7,
+            padding: "6px 18px",
+            fontWeight: 600,
+            cursor: "pointer"
+          }}
+          onClick={() => nav("/add-medicine")}
+        >
+          Add Medicine
+        </button>
+        <button
+          className="btn"
+          style={{
             background: selected === "pharmacies" ? "#bc1ff4" : "#222238",
             color: selected === "pharmacies" ? "#fff" : "#bc1ff4",
             fontSize: 16,
@@ -92,7 +109,7 @@ function Navbar({ selected = "home" }) {
           }}
           onClick={() => nav("/chennai-pharmacies")}
         >
-          Area Pharmacies
+          Pharmacies
         </button>
       </div>
     </nav>
