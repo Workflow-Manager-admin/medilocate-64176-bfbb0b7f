@@ -389,45 +389,77 @@ function PharmacyLocatorWithAddress() {
   const [searching, setSearching] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [filteredPharmacies, setFilteredPharmacies] = useState(SAMPLE_PHARMACIES);
+  // Start with empty, show only after search
+  const [filteredPharmacies, setFilteredPharmacies] = useState([]);
+
+  // Track if address was searched (for UI logic)
+  const [addressSearched, setAddressSearched] = useState(false);
 
   // --- Google Maps script loader: robust and idempotent ---
+  // PUBLIC_INTERFACE
+  /**
+   * Loads the Google Maps JS API robustly, ensuring we don't double-load and that errors/timeouts
+   * produce visible, actionable error messages.
+   * Always calls cb() if successful load, or sets error UI state if failure.
+   */
   function loadGoogleMapsScript(cb) {
-    // Provide a clear error message in UI if API key is missing
+    // Provide a clear error message in UI if API key is missing or dummy
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
     if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
       setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
       setMapLoaded(false);
+      if (cb) cb(false);
       return;
     }
     const scriptId = 'google-maps-script';
+
+    // If already loaded, use it
     if (window.google && window.google.maps) {
-      cb && cb();
       setMapLoaded(true);
+      if (cb) cb(true);
       return;
     }
+
+    // If script exists but not loaded yet
     let script = document.getElementById(scriptId);
     if (script) {
-      if (!window.initMap) {
-        window.initMap = () => setMapLoaded(true);
-      }
-      script.addEventListener('load', cb, { once: true });
+      // Attach cb to load event, set window.initMap fallback
+      script.addEventListener('load', () => { setMapLoaded(true); if (cb) cb(true); }, { once: true });
+      if (!window.initMap) window.initMap = () => { setMapLoaded(true); if (cb) cb(true); };
+      // Attach error event
+      script.addEventListener('error', () => {
+        setErrorMsg("Google Maps script failed to load. Please check your internet connection and API key.");
+        setMapLoaded(false);
+        if (cb) cb(false);
+      }, { once: true });
       return;
     }
+
+    // Insert new script
     script = document.createElement('script');
     script.id = scriptId;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-    script.async = true; script.defer = true;
-    script.onload = () => { cb && cb(); setMapLoaded(true); };
-    script.onerror = () => setErrorMsg("Google Maps failed to load. Check internet, ad blockers, or API key restrictions.");
-    // Defensive: if callback never called, show error after 7s
-    window.initMap = () => setMapLoaded(true);
+    script.async = true;
+    script.defer = true;
+
+    // Success handler
+    script.onload = () => { setMapLoaded(true); if (cb) cb(true); };
+    // Defensive: maps API sometimes fails to call callback
+    window.initMap = () => { setMapLoaded(true); if (cb) cb(true); };
+    // Error handler
+    script.onerror = () => {
+      setErrorMsg("Google Maps failed to load. Check internet, ad blockers, or API key restrictions.");
+      setMapLoaded(false);
+      if (cb) cb(false);
+    };
+    // Timeout fallback (robust fallback in case neither onload nor onerror fire)
     setTimeout(() => {
       if (!window.google || !window.google.maps) {
-        setMapLoaded(false);
         setErrorMsg("Google Maps loading timed out. Check your API key, network, or browser extensions.");
+        setMapLoaded(false);
+        if (cb) cb(false);
       }
-    }, 7000);
+    }, 10000);
     document.body.appendChild(script);
   }
 
@@ -517,7 +549,9 @@ function PharmacyLocatorWithAddress() {
   async function handleAddressSearch(e) {
     e.preventDefault();
     setSearching(true);
+    setAddressSearched(true); // Mark as searched for UI logic
     setErrorMsg('');
+    setFilteredPharmacies([]); // Reset listing before search
     // Use Google Maps Geocoding API
     try {
       const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
@@ -542,17 +576,17 @@ function PharmacyLocatorWithAddress() {
         const a = Math.sin(dLat / 2) ** 2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLng / 2) ** 2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       }
-      setFilteredPharmacies(
-        SAMPLE_PHARMACIES
-          .map(ph => ({
-            ...ph,
-            dist: haversineDistance(lat, lng, ph.lat, ph.lng)
-          }))
-          .filter(ph => ph.dist < 7)
-          .sort((a, b) => a.dist - b.dist)
-      );
+      const found = SAMPLE_PHARMACIES
+        .map(ph => ({
+          ...ph,
+          dist: haversineDistance(lat, lng, ph.lat, ph.lng)
+        }))
+        .filter(ph => ph.dist < 7)
+        .sort((a, b) => a.dist - b.dist);
+      setFilteredPharmacies(found);
     } catch (err) {
       setErrorMsg("Sorry, address not found. Please try again.");
+      setFilteredPharmacies([]); // Clear if error
     }
     setSearching(false);
   }
@@ -613,64 +647,76 @@ function PharmacyLocatorWithAddress() {
           borderRadius: 12,
           overflow: "hidden",
           background: "#191932",
-          boxShadow: "0 1px 3px rgba(174,76,105,0.10)"
-        }} 
+          boxShadow: "0 1px 3px rgba(174,76,105,0.10)",
+          position: "relative"
+        }}
       >
-        {/* Google Map injected here */}
-        {!mapLoaded && (
+        {/* Google Map injected here. If failed, overlay error */}
+        {(!mapLoaded || errorMsg) && (
           <div style={{
-            height: "100%",
+            position: "absolute",
+            top: 0, left: 0, width: "100%", height: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: COLORS.accent,
-            background: "#242546"
+            color: errorMsg ? "#ff5656" : COLORS.accent,
+            background: "rgba(36,37,70,0.95)",
+            zIndex: 20,
+            fontSize: 16,
+            fontWeight: 500,
+            borderRadius: 12
           }}>
             {errorMsg
-              ? <span style={{ color: "#ff5656" }}>{errorMsg}</span>
+              ? <span>{errorMsg}</span>
               : "Loading Google Map..."
             }
           </div>
         )}
       </div>
-      <div style={{
-        fontWeight: 500, color: COLORS.primary, marginBottom: 8
-      }}>
-        {filteredPharmacies.length
-          ? `Pharmacies near this address:`
-          : `No known pharmacies found near this address.`}
-      </div>
-      <ul style={{listStyle:'none',padding:0,margin:0}}>
-        {filteredPharmacies.map((ph, idx) => (
-          <li key={idx} style={{
-            background: COLORS.background,
-            borderLeft:`4px solid ${COLORS.accent}`,
-            padding:'11px 9px',borderRadius:6,margin:'0 0 10px',
-            fontWeight:430,fontSize:15,display:'flex',alignItems:'center',gap:10
+      {addressSearched && (
+        <>
+          <div style={{
+            fontWeight: 500, color: COLORS.primary, marginBottom: 8
           }}>
-            <span style={{fontSize:18,color:COLORS.accent}}>💊</span>
-            <span>
-              <strong>{ph.name}</strong>
-              <span style={{
-                display:'block',
-                fontSize:13,
-                color:COLORS.subtle,
-                marginTop:2
+            {errorMsg
+              ? "No known pharmacies found near this address."
+              : (filteredPharmacies.length
+                ? `Pharmacies near this address:`
+                : `No known pharmacies found near this address.`)}
+          </div>
+          <ul style={{listStyle:'none',padding:0,margin:0}}>
+            {filteredPharmacies.map((ph, idx) => (
+              <li key={idx} style={{
+                background: COLORS.background,
+                borderLeft:`4px solid ${COLORS.accent}`,
+                padding:'11px 9px',borderRadius:6,margin:'0 0 10px',
+                fontWeight:430,fontSize:15,display:'flex',alignItems:'center',gap:10
               }}>
-                ({ph.lat.toFixed(4)}, {ph.lng.toFixed(4)})
-                {ph.dist!==undefined && typeof(ph.dist)==="number" ? (
-                  <span style={{marginLeft:12, color:COLORS.primary, fontSize:12}}>
-                    {ph.dist<1 ? `${(ph.dist*1000).toFixed(0)} m` : `${ph.dist.toFixed(1)} km`} away
+                <span style={{fontSize:18,color:COLORS.accent}}>💊</span>
+                <span>
+                  <strong>{ph.name}</strong>
+                  <span style={{
+                    display:'block',
+                    fontSize:13,
+                    color:COLORS.subtle,
+                    marginTop:2
+                  }}>
+                    ({ph.lat.toFixed(4)}, {ph.lng.toFixed(4)})
+                    {ph.dist!==undefined && typeof(ph.dist)==="number" ? (
+                      <span style={{marginLeft:12, color:COLORS.primary, fontSize:12}}>
+                        {ph.dist<1 ? `${(ph.dist*1000).toFixed(0)} m` : `${ph.dist.toFixed(1)} km`} away
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div style={{marginTop:12, fontSize:12, color:COLORS.subtle}}>
-        Powered by Google Maps. Pharmacy data is for illustration; real app would pull live data from an API.
-      </div>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div style={{marginTop:12, fontSize:12, color:COLORS.subtle}}>
+            Powered by Google Maps. Pharmacy data is for illustration; real app would pull live data from an API.
+          </div>
+        </>
+      )}
     </div>
   );
 }
