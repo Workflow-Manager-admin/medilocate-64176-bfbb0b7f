@@ -6,6 +6,7 @@ import MainContainer from './MainContainer';
 import AddMedicine from './AddMedicine';
 import Calendar from './Calendar';
 import PharmaciesChennai from './PharmaciesChennai';
+import Homepage from './Homepage';
 
 // PUBLIC_INTERFACE
 function App() {
@@ -17,7 +18,7 @@ function App() {
         paddingTop: 68 // offset for fixed navbar
       }}>
         <Routes>
-          <Route path="/" element={<MainContainer />} />
+          <Route path="/" element={<Homepage />} />
           <Route path="/add-medicine" element={<AddMedicine />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/pharmacies-chennai" element={<PharmaciesChennai />} />
