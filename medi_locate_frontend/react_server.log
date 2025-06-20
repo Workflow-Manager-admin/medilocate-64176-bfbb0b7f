@@ -33,3 +33,13 @@ cached modules 1.61 MiB [cached] 50 modules
 runtime modules 28.7 KiB 15 modules
 ./src/Homepage.js 11.7 KiB [built] [code generated]
 webpack 5.99.9 compiled successfully in 167 ms
+assets by status 1.98 KiB [cached] 1 asset
+assets by path *.js 1.82 MiB
+  asset bundle.js 1.8 MiB [emitted] (name: main)
+  asset main.153db744c3a6f19e71c6.hot-update.js 15.5 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.153db744c3a6f19e71c6.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 1.82 MiB = bundle.js 1.8 MiB main.153db744c3a6f19e71c6.hot-update.js 15.5 KiB
+cached modules 1.61 MiB [cached] 50 modules
+runtime modules 28.7 KiB 15 modules
+./src/Homepage.js 11.7 KiB [built] [code generated]
+webpack 5.99.9 compiled successfully in 91 ms

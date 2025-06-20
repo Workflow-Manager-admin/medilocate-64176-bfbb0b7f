@@ -55,21 +55,18 @@ function Homepage() {
     );
   }
 
-  // Render the Google Map embedded iframe below the medicine reminder list,
-  // using the user-supplied API key and reverting to public embed if needed.
   // PUBLIC_INTERFACE
-  /** Embeds the Google Map showing central Chennai with correct API key and dark theme wrapping. Has fallback if API-key embed fails. */
+  /** Embeds the Google Map showing central Chennai using the known working Google public embed, with fixed width and height. 
+   * No conditional rendering is present, so the map is always shown unless embedding is blocked by browser or network policy.
+   * 
+   * If the map does not display, open https://maps.google.com, search for "Chennai, India", then use "Share" > "Embed a map"
+   * to generate a new iframe code. Replace the src URL as required.
+   */
   function GoogleMapEmbed() {
-    const GOOGLE_MAP_API_KEY = "AIzaSyAgkNtHVBewTLsDpR1zefMX18CYoYVx2AQ";
-    // Default API Key embed
-    const mapSrcV1 = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`;
-    // Fallback: public no-key embed for "Chennai, India"
+    // Known working Google Maps embed public URL for Chennai, India.
+    // Uses "pb=" format, no API key required (Embed API keys are often blocked or restricted)
     const mapSrcPublic =
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.0020631776705!2d80.26404571531156!3d13.082680415098756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52679a89d6314b%3A0xc1f6ab4f9450cb96!2sChennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1681299092380!5m2!1sen!2sin";
-
-    // We'll try the API-key embed. If it fails (e.g., Chrome extension blocks, corporate policy, etc.), the user may still see a blank (as origin errors are not catchable in iframe). So, expose both in code for debug, but only render one.
-    // See https://developers.google.com/maps/documentation/embed/get-started for reference.
-
     return (
       <div
         style={{
@@ -83,11 +80,10 @@ function Homepage() {
           border: `1.5px solid ${palette.background}`,
         }}
       >
-        {/* Main Embed */}
         <iframe
           title="Google Map"
           width="100%"
-          height="340"
+          height="400"
           loading="lazy"
           style={{
             border: "none",
@@ -95,31 +91,13 @@ function Homepage() {
             background: "#17182a",
             minHeight: 260,
             filter: "invert(0.94) hue-rotate(185deg) contrast(1.05) brightness(0.88)",
-          }}
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-          // Try API key first, fallback is in comments
-          src={mapSrcV1}
-        />
-        {/* 
-        // If your API-key embed is refused, uncomment below and comment out mapSrcV1 above to see fallback.
-        <iframe
-          title="Google Map (Fallback Public Embed)"
-          width="100%"
-          height="340"
-          style={{
-            border: "none",
-            display: "block",
-            background: "#17182a",
-            minHeight: 260,
-            filter: "invert(0.94) hue-rotate(185deg) contrast(1.05) brightness(0.88)",
+            width: "100%", // redundant with width attr, but ensures stretching
+            height: 400
           }}
           src={mapSrcPublic}
-          loading="lazy"
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
         />
-        */}
         <div
           style={{
             padding: "10px 16px 10px",
@@ -133,7 +111,7 @@ function Homepage() {
         >
           <span style={{ color: palette.accent, marginRight: 8 }}>🗺️ Google Map</span>
           <span style={{ color: palette.subtle, fontSize: 14 }}>
-            Map area (Chennai center), for demo only. Styled for MediLocate dark mode.
+            Map area (Chennai center), always visible. <b>If the map fails to display, regenerate a public embed at maps.google.com as described below.</b>
           </span>
         </div>
       </div>
