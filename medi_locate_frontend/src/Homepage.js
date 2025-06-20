@@ -61,7 +61,7 @@ function Homepage() {
   /** Embeds the Google Map showing central Chennai with correct API key and dark theme wrapping. */
   function GoogleMapEmbed() {
     // IMPORTANT: Use the supplied API key exactly as given:
-    const GOOGLE_MAP_API_KEY = "AIzaSyBtMQNFdZbNfN7urxPy2oxDVtG_3ozXfes";
+    const GOOGLE_MAP_API_KEY = "AIzaSyAgkNtHVBewTLsDpR1zefMX18CYoYVx2AQ";
     // Official v1 embed view URL
     const mapSrc = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`;
     return (
