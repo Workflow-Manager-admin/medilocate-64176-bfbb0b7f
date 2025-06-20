@@ -55,11 +55,13 @@ function Homepage() {
     );
   }
 
-  // Render a Google Map using provided API key, immediately under reminder list
-  // (No extra pharmacy locator logic.)
+  // Render the Google Map embedded iframe below the medicine reminder list.
+  // All conflicting/legacy map code removed for clarity.
   const GOOGLE_MAP_API_KEY = "AIzaSyAqs1simMQ3jHmkYRNXTDF6_2_ZOEyyZZA";
+  
+  // PUBLIC_INTERFACE
+  /** Embeds a Google map showing central Chennai as dark mode as possible using iframe. */
   function GoogleMapEmbed() {
-    // We just embed an iframe, no map search for pharmacies (no locator UI/logic)
     return (
       <div
         style={{
@@ -70,6 +72,7 @@ function Homepage() {
           borderRadius: 14,
           overflow: "hidden",
           boxShadow: "0 2px 14px rgba(52,52,90,0.11)",
+          border: `1.5px solid ${palette.background}`,
         }}
       >
         <iframe
@@ -87,6 +90,7 @@ function Homepage() {
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
           src={
+            // v1/embed with view focuses on given lat/lng (Chennai center)
             `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`
           }
         />
@@ -103,13 +107,14 @@ function Homepage() {
         >
           <span style={{ color: palette.accent, marginRight: 8 }}>🗺️ Google Map</span>
           <span style={{ color: palette.subtle, fontSize: 14 }}>
-            Map (for reference), styled to MediLocate dark mode
+            Map area (Chennai center), for demo only. Styled for MediLocate dark mode.
           </span>
         </div>
       </div>
     );
   }
 
+  // The homepage returns the reminders, then the map, styled in MediLocate dark theme.
   return (
     <div
       style={{
@@ -179,7 +184,7 @@ function Homepage() {
           padding: "24px 0 0",
         }}
       >
-        {/* Centered reminder list card */}
+        {/* Medicine reminder section */}
         <div
           style={{
             background: palette.card,
@@ -211,7 +216,7 @@ function Homepage() {
               textAlign: "center"
             }}
           >
-            Stay on track with your medication schedule.<br/>Mark each as taken when done!
+            Stay on track with your medication schedule.<br />Mark each as taken when done!
           </div>
           {medicines.length === 0 && (
             <div
