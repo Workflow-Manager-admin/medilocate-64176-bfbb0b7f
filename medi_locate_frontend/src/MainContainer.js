@@ -278,180 +278,125 @@ function MedicineReminderSystem() {
 }
 
 
-// --------- Pharmacy Locator Components ------------
 
-// PUBLIC_INTERFACE
-function PharmacyLocator() {
-  // API Key -- You must replace this with your own valid LocationIQ key for production/deployment.
-  const LOCATIONIQ_API_KEY = "pk.9a705b331f67092e02e6ce27bd6fdbe9"; // Demo key subject to rate limits
 
-  const [position, setPosition] = useState(null); // {lat, lon}
-  const [pharmacies, setPharmacies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [locationErr, setLocationErr] = useState(null);
+//
+// -------- MAIN CONTAINER --------------
 
-  // Try geolocating user
-  useEffect(() => {
-    if (!position) {
-      if (!navigator.geolocation) {
-        setLocationErr("Location is not supported.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        pos => setPosition({lat: pos.coords.latitude, lon: pos.coords.longitude}),
-        err => setLocationErr("Unable to detect location.")
-      );
-    }
-  }, [position]);
+/*
+  Remove: PharmacyLocator and its UI.
+  Add: Google map below medicine reminder.
+*/
 
-  // Load pharmacies when geolocated
-  useEffect(() => {
-    if (position && pharmacies.length === 0) {
-      setIsLoading(true);
-      fetch(`https://us1.locationiq.com/v1/nearby.php?key=${LOCATIONIQ_API_KEY}&lat=${position.lat}&lon=${position.lon}&tag=pharmacy&radius=3000&format=json`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setPharmacies(data);
-          } else {
-            setLocationErr("No pharmacies found nearby.");
-          }
-          setIsLoading(false);
-        }).catch(() => {
-          setLocationErr("Error fetching pharmacy data.");
-          setIsLoading(false);
-        });
-    }
-  }, [position, pharmacies.length, LOCATIONIQ_API_KEY]);
+function MainContainer() {
+  // Google Maps API Key for embedding map (new key, provided by requirements)
+  const GOOGLE_MAPS_API_KEY = "AIzaSyBtMQNFdZbNfN7urxPy2oxDVtG_3ozXfes";
 
-  // Google Static Map URL (not interactive, but sufficient for simple demo and public client)
-  function getMapUrl() {
-    // Map with user and pharmacy markers
-    let center = position ? `${position.lat},${position.lon}` : "0,0";
-    let markers = `color:0x${COLORS.primary.substring(1)}|label:U|${center}`;
-    pharmacies.slice(0,10).forEach(ph => {
-      markers += `&markers=color:0x${COLORS.accent.substring(1)}|label:P|${ph.lat},${ph.lon}`;
-    });
-    let width = 600, height = 260;
-    return `https://maps.locationiq.com/v3/staticmap?key=${LOCATIONIQ_API_KEY}&center=${center}&zoom=14&size=${width}x${height}&maptype=dark&markers=${markers}`;
+  // Functional Google Maps component
+  function EmbeddedGoogleMap() {
+    // Default center: Chennai
+    const center_lat = 13.0827, center_lng = 80.2707;
+    const zoom = 12;
+    // You may adjust size as needed
+    const mapURL = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=${center_lat},${center_lng}&zoom=${zoom}&maptype=roadmap`;
+    return (
+      <div style={{
+        margin: "0 auto",
+        marginTop: 30,
+        marginBottom: 24,
+        display: "flex",
+        justifyContent: "center"
+      }}>
+        <iframe
+          title="Google Map"
+          src={mapURL}
+          width="600"
+          height="300"
+          style={{ border: 0, borderRadius: 10, width: "100%", maxWidth: 600, boxShadow:"0 1px 8px rgba(82,47,244,0.12)" }}
+          allowFullScreen=""
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+    );
   }
 
   return (
     <div style={{
-      background: COLORS.card,
-      borderRadius: 12,
-      padding: 24,
-      boxShadow:'0 2px 8px rgba(0,0,0,0.13)'
-    }}>
-      <h2 style={{color:COLORS.secondary,margin:'0 0 8px'}}>Nearby Pharmacy Locator</h2>
-      <div style={{
-        marginBottom: 12,
-        color: COLORS.subtle,
-        fontSize: 15
-      }}>Find nearby pharmacies using your device location.</div>
-      {position && (
-        <div style={{marginBottom:14, fontSize:13, color:COLORS.accent}}>
-          <span>📍</span> Your location detected ({position.lat.toFixed(4)}, {position.lon.toFixed(4)})
-        </div>
-      )}
-      {isLoading && <div style={{color:COLORS.subtle}}>Loading pharmacies...</div>}
-      {locationErr && <div style={{color:COLORS.missed, fontWeight:600}}>{locationErr}</div>}
-      {!isLoading && position && (
-        <>
-          <div style={{
-            width:'100%', maxWidth:600, margin:'0 auto 18px', background:COLORS.background,
-            borderRadius:9,overflow:'hidden',boxShadow:'0 1px 3px rgba(82,47,244,0.08)'
-          }}>
-            <img
-              src={getMapUrl()}
-              alt="Nearby pharmacies map"
-              style={{width:'100%',maxWidth:'100%',height:260,display:'block'}}
-            />
-          </div>
-          <div style={{fontWeight:500,color:COLORS.primary,marginBottom:4}}>Pharmacies nearby:</div>
-          <ul style={{listStyle:'none',padding:0,margin:0}}>
-            {pharmacies.slice(0,6).map(p => (
-              <li key={p.osm_id} style={{
-                background:COLORS.background,
-                borderLeft:`4px solid ${COLORS.accent}`,
-                padding:'11px 9px',borderRadius:6,
-                margin:'0 0 10px',fontWeight:430,fontSize:15,display:'flex',alignItems:'center',gap:10}}>
-                <span style={{fontSize:18,color:COLORS.accent}}>🏥</span>
-                <span>
-                  {p.name || <em>Unnamed Pharmacy</em>}
-                  <span style={{display:'block',fontSize:13,color:COLORS.subtle,marginTop:2}}>
-                    {p.dist ? (p.dist/1000).toFixed(2)+'km away' : ''}
-                  </span>
-                </span>
-              </li>
-            ))}
-            {pharmacies.length===0 && (
-              <li style={{color:COLORS.subtle,fontSize:14}}>No pharmacy data yet.</li>
-            )}
-          </ul>
-        </>
-      )}
-      {!position && !locationErr && (
-        <div style={{color:COLORS.subtle, marginBottom:8}}>Detecting device location...</div>
-      )}
-    </div>
-  );
-}
-
-// -------- MAIN CONTAINER --------------
-
-function MainContainer() {
-  return (
-    <div style={{
-      minHeight:"100vh", background:COLORS.background, color: COLORS.text, paddingBottom:28
+      minHeight: "100vh",
+      background: COLORS.background,
+      color: COLORS.text,
+      paddingBottom: 28
     }}>
       {/* Navigation Bar */}
       <nav style={{
-        background: "#161722", color:COLORS.text,
-        padding: "21px 0 10px", marginBottom:30,
-        borderBottom:`2.5px solid ${COLORS.primary}`,
-        position:"sticky",top:0,zIndex:99
+        background: "#161722",
+        color: COLORS.text,
+        padding: "21px 0 10px",
+        marginBottom: 30,
+        borderBottom: `2.5px solid ${COLORS.primary}`,
+        position: "sticky",
+        top: 0,
+        zIndex: 99
       }}>
         <div style={{
-          maxWidth:960, margin:"0 auto", padding: "0 28px",
-          display:'flex',alignItems:'center',justifyContent:'space-between'
+          maxWidth: 960,
+          margin: "0 auto",
+          padding: "0 28px",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
           <span style={{
-            fontWeight:800,fontSize:22,letterSpacing:'-1.5px',color:COLORS.primary,
-            display:'flex',alignItems:'center',gap:7
+            fontWeight: 800,
+            fontSize: 22,
+            letterSpacing: '-1.5px',
+            color: COLORS.primary,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7
           }}>
-            <span style={{fontSize:28,color:COLORS.accent}}>💊</span> MediLocate
+            <span style={{ fontSize: 28, color: COLORS.accent }}>💊</span> MediLocate
           </span>
           <span style={{
-            fontSize:13, color:COLORS.text, background:COLORS.secondary, padding:'5px 16px',
-            borderRadius:16, fontWeight:600
+            fontSize: 13,
+            color: COLORS.text,
+            background: COLORS.secondary,
+            padding: '5px 16px',
+            borderRadius: 16,
+            fontWeight: 600
           }}>Dark Mode</span>
         </div>
       </nav>
       {/* Main layout */}
       <main>
         <div style={{
-          maxWidth: 960, margin: "0 auto", padding: "0 28px"
+          maxWidth: 700,
+          margin: "0 auto",
+          padding: "0 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
         }}>
+          {/* Medicine Reminder, centered */}
           <div style={{
-            display:'grid',
-            gridTemplateColumns:'1fr 1fr',
-            gap:36,
-            alignItems:'flex-start'
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
           }}>
-            <div>
-              {/* Medicine Reminder System */}
-              <MedicineReminderSystem />
-            </div>
-            <div>
-              {/* Nearby Pharmacy Locator */}
-              <PharmacyLocator />
-            </div>
+            <MedicineReminderSystem />
           </div>
+          {/* Directly below: Google Map */}
+          <EmbeddedGoogleMap />
         </div>
       </main>
       <footer style={{
-        textAlign: "center", color: COLORS.subtle, fontSize: 14, marginTop:40, padding: "10px 0"
+        textAlign: "center",
+        color: COLORS.subtle,
+        fontSize: 14,
+        marginTop: 40,
+        padding: "10px 0"
       }}>
         &copy; {new Date().getFullYear()} MediLocate. For demo use only. | Design by KAVIA
       </footer>
