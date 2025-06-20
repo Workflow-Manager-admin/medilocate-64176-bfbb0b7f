@@ -55,13 +55,15 @@ function Homepage() {
     );
   }
 
-  // Render the Google Map embedded iframe below the medicine reminder list.
-  // All conflicting/legacy map code removed for clarity.
-  const GOOGLE_MAP_API_KEY = "AIzaSyAqs1simMQ3jHmkYRNXTDF6_2_ZOEyyZZA";
-  
+  // Render the Google Map embedded iframe below the medicine reminder list,
+  // using the user-supplied API key.
   // PUBLIC_INTERFACE
-  /** Embeds a Google map showing central Chennai as dark mode as possible using iframe. */
+  /** Embeds the Google Map showing central Chennai with correct API key and dark theme wrapping. */
   function GoogleMapEmbed() {
+    // IMPORTANT: Use the supplied API key exactly as given:
+    const GOOGLE_MAP_API_KEY = "AIzaSyBtMQNFdZbNfN7urxPy2oxDVtG_3ozXfes";
+    // Official v1 embed view URL
+    const mapSrc = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`;
     return (
       <div
         style={{
@@ -89,10 +91,7 @@ function Homepage() {
           }}
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
-          src={
-            // v1/embed with view focuses on given lat/lng (Chennai center)
-            `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`
-          }
+          src={mapSrc}
         />
         <div
           style={{
