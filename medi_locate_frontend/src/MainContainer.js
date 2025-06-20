@@ -403,10 +403,10 @@ function PharmacyLocatorWithAddress() {
    * Always calls cb() if successful load, or sets error UI state if failure.
    */
   function loadGoogleMapsScript(cb) {
-    // Provide a clear error message in UI if API key is missing or dummy
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
-    if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
-      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
+    // Use the actual provided API key, fallback to env for CI/local
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyAhrGdUff3xuN32rEO-TyYWAi1In0EiwOQ";
+    if (!apiKey) {
+      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in the .env file.");
       setMapLoaded(false);
       if (cb) cb(false);
       return;
@@ -465,9 +465,9 @@ function PharmacyLocatorWithAddress() {
 
   // Load Maps JS (just once, robustly)
   useEffect(() => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
-    if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
-      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyAhrGdUff3xuN32rEO-TyYWAi1In0EiwOQ";
+    if (!apiKey) {
+      setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in the .env file.");
       return;
     }
     if (window.google && window.google.maps) {
@@ -554,9 +554,9 @@ function PharmacyLocatorWithAddress() {
     setFilteredPharmacies([]); // Reset listing before search
     // Use Google Maps Geocoding API
     try {
-      const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
-      if (!API_KEY || API_KEY.indexOf("DEMO-KEY-CHANGEME") !== -1) {
-        setErrorMsg("Google Maps API key is invalid or missing. Set REACT_APP_GOOGLE_MAPS_API_KEY in environment.");
+      const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyAhrGdUff3xuN32rEO-TyYWAi1In0EiwOQ";
+      if (!API_KEY) {
+        setErrorMsg("Google Maps API key is invalid or missing. Set REACT_APP_GOOGLE_MAPS_API_KEY in environment or .env file.");
         setSearching(false);
         return;
       }
