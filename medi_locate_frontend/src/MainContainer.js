@@ -397,24 +397,37 @@ function PharmacyLocatorWithAddress() {
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyDEMO-DEMO-KEY-CHANGEME";
     if (!apiKey || apiKey.indexOf("DEMO-KEY-CHANGEME") !== -1) {
       setErrorMsg("Google Maps API key is invalid or missing. Please specify a valid key in REACT_APP_GOOGLE_MAPS_API_KEY env var.");
+      setMapLoaded(false);
       return;
     }
     const scriptId = 'google-maps-script';
     if (window.google && window.google.maps) {
       cb && cb();
+      setMapLoaded(true);
       return;
     }
-    if (document.getElementById(scriptId)) {
-      document.getElementById(scriptId).addEventListener('load', cb, { once: true });
+    let script = document.getElementById(scriptId);
+    if (script) {
+      if (!window.initMap) {
+        window.initMap = () => setMapLoaded(true);
+      }
+      script.addEventListener('load', cb, { once: true });
       return;
     }
-    const script = document.createElement('script');
+    script = document.createElement('script');
     script.id = scriptId;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
     script.async = true; script.defer = true;
-    script.onload = () => { cb && cb(); };
+    script.onload = () => { cb && cb(); setMapLoaded(true); };
     script.onerror = () => setErrorMsg("Google Maps failed to load. Check internet, ad blockers, or API key restrictions.");
+    // Defensive: if callback never called, show error after 7s
     window.initMap = () => setMapLoaded(true);
+    setTimeout(() => {
+      if (!window.google || !window.google.maps) {
+        setMapLoaded(false);
+        setErrorMsg("Google Maps loading timed out. Check your API key, network, or browser extensions.");
+      }
+    }, 7000);
     document.body.appendChild(script);
   }
 
@@ -747,20 +760,17 @@ function MainContainer() {
         <div style={{
           maxWidth: 960, margin: "0 auto", padding: "0 28px"
         }}>
+          {/* Medicine Reminder Section */}
           <div style={{
-            display:'grid',
-            gridTemplateColumns:'1fr 1fr',
-            gap:36,
-            alignItems:'flex-start'
+            marginBottom: 36
           }}>
-            <div>
-              {/* Medicine Reminder System */}
-              <MedicineReminderSystem />
-            </div>
-            <div>
-              {/* Pharmacy Locator with Address Bar */}
-              <PharmacyLocatorWithAddress />
-            </div>
+            <MedicineReminderSystem />
+          </div>
+          {/* Pharmacy Locator below Medicine Reminder */}
+          <div style={{
+            marginBottom: 36
+          }}>
+            <PharmacyLocatorWithAddress />
           </div>
         </div>
       </main>
