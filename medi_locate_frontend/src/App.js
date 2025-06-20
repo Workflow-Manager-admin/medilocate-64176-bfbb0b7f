@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import MainContainer from './MainContainer';
 import AddMedicine from './AddMedicine';
 import Calendar from './Calendar';
+import PharmaciesChennai from './PharmaciesChennai';
 
 // PUBLIC_INTERFACE
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<MainContainer />} />
           <Route path="/add-medicine" element={<AddMedicine />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/pharmacies-chennai" element={<PharmaciesChennai />} />
         </Routes>
       </div>
     </BrowserRouter>

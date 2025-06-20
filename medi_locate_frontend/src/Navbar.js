@@ -45,6 +45,21 @@ function Navbar() {
               transition: 'background 0.18s'
             }}
           >Calendar</NavLink>
+          <NavLink
+            to="/pharmacies-chennai"
+            className={({ isActive }) =>
+              'nav-link' + (isActive ? ' nav-link-active' : '')
+            }
+            style={{
+              color: 'var(--text-color)',
+              textDecoration: 'none',
+              fontWeight: 500,
+              fontSize: 16,
+              padding: '6px 14px',
+              borderRadius: 7,
+              transition: 'background 0.18s'
+            }}
+          >Pharmacies Chennai</NavLink>
         </div>
       </div>
     </nav>
