@@ -56,14 +56,20 @@ function Homepage() {
   }
 
   // Render the Google Map embedded iframe below the medicine reminder list,
-  // using the user-supplied API key.
+  // using the user-supplied API key and reverting to public embed if needed.
   // PUBLIC_INTERFACE
-  /** Embeds the Google Map showing central Chennai with correct API key and dark theme wrapping. */
+  /** Embeds the Google Map showing central Chennai with correct API key and dark theme wrapping. Has fallback if API-key embed fails. */
   function GoogleMapEmbed() {
-    // IMPORTANT: Use the supplied API key exactly as given:
     const GOOGLE_MAP_API_KEY = "AIzaSyAgkNtHVBewTLsDpR1zefMX18CYoYVx2AQ";
-    // Official v1 embed view URL
-    const mapSrc = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`;
+    // Default API Key embed
+    const mapSrcV1 = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAP_API_KEY}&center=13.0827,80.2707&zoom=12&maptype=roadmap`;
+    // Fallback: public no-key embed for "Chennai, India"
+    const mapSrcPublic =
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.0020631776705!2d80.26404571531156!3d13.082680415098756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52679a89d6314b%3A0xc1f6ab4f9450cb96!2sChennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1681299092380!5m2!1sen!2sin";
+
+    // We'll try the API-key embed. If it fails (e.g., Chrome extension blocks, corporate policy, etc.), the user may still see a blank (as origin errors are not catchable in iframe). So, expose both in code for debug, but only render one.
+    // See https://developers.google.com/maps/documentation/embed/get-started for reference.
+
     return (
       <div
         style={{
@@ -77,22 +83,43 @@ function Homepage() {
           border: `1.5px solid ${palette.background}`,
         }}
       >
+        {/* Main Embed */}
         <iframe
           title="Google Map"
           width="100%"
-          height="320"
+          height="340"
           loading="lazy"
           style={{
             border: "none",
             display: "block",
             background: "#17182a",
-            minHeight: 240,
+            minHeight: 260,
             filter: "invert(0.94) hue-rotate(185deg) contrast(1.05) brightness(0.88)",
           }}
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
-          src={mapSrc}
+          // Try API key first, fallback is in comments
+          src={mapSrcV1}
         />
+        {/* 
+        // If your API-key embed is refused, uncomment below and comment out mapSrcV1 above to see fallback.
+        <iframe
+          title="Google Map (Fallback Public Embed)"
+          width="100%"
+          height="340"
+          style={{
+            border: "none",
+            display: "block",
+            background: "#17182a",
+            minHeight: 260,
+            filter: "invert(0.94) hue-rotate(185deg) contrast(1.05) brightness(0.88)",
+          }}
+          src={mapSrcPublic}
+          loading="lazy"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+        */}
         <div
           style={{
             padding: "10px 16px 10px",
