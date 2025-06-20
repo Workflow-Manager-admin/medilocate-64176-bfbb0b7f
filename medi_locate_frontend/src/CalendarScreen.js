@@ -276,6 +276,130 @@ function CalendarScreen() {
             );
           })}
         </div>
+        {/* Weekly summary section */}
+        <div style={{
+          background: "#232345",
+          borderRadius: 11,
+          marginTop: 32,
+          boxShadow: "0 2px 8px #bc1ff413",
+          padding: "20px 9px 13px 9px",
+        }}>
+          <div style={{
+            fontSize: 18,
+            color: "#bc1ff4",
+            fontWeight: 700,
+            marginBottom: 8,
+            textAlign: "center",
+            letterSpacing: "0.5px"
+          }}>Weekly Medicine Summary</div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            gap: "8px",
+            marginTop: 9,
+            marginBottom: 7,
+            minHeight: 100,
+          }}>
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((weekday, widx) => {
+              // Find the soonest date for each day in the current week (Mon-Sun, current week)
+              // Get this week's Monday
+              const curr = new Date();
+              const day = curr.getDay(); // 0-Sun, 1-Mon
+              const weekDayIdx = (widx + 1) % 7;
+              const monday = new Date(curr);
+              monday.setDate(curr.getDate() - ((day + 6) % 7));
+              // Week dates
+              const summaryDate = new Date(monday);
+              summaryDate.setDate(monday.getDate() + widx);
+              const isToday = summaryDate.toISOString().split("T")[0] === todayISO;
+              // Get medicine list for this summaryDate
+              const meds = medicinesForDate(summaryDate);
+
+              return (
+                <div key={weekday}
+                  style={{
+                    background: isToday ? "#36377A" : "#282944",
+                    borderRadius: 8,
+                    border: isToday ? "2.5px solid #ae4c69" : "1.2px solid #232345",
+                    padding: "9px 6px 7px 6px",
+                    minHeight: 82,
+                    boxShadow: isToday ? "0 0 8px #ae4c6970" : "none",
+                    color: "#fff"
+                  }}>
+                  <div style={{
+                    fontWeight: 700,
+                    color: isToday ? "#ae4c69" : "#bc1ff4",
+                    textAlign: "center",
+                    marginBottom: 1
+                  }}>{weekday}
+                    {isToday && <span style={{
+                      marginLeft: 5,
+                      color: "#bc1ff4",
+                      fontSize: 15
+                    }}>•</span>}
+                  </div>
+                  {meds.length === 0 ? (
+                    <div style={{
+                      fontSize: 12,
+                      color: "#7d7d8d",
+                      textAlign: "center",
+                      marginTop: 7,
+                      fontStyle: "italic"
+                    }}>
+                      None
+                    </div>
+                  ) : meds.map((med, midx) => (
+                    <div key={midx} style={{
+                      margin: "4px 0",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center"
+                    }}>
+                      <span style={{
+                        ...medPillStyle,
+                        color: "#1c1d23",
+                        padding: "2px 9px",
+                        fontWeight: 700,
+                        marginBottom: 1,
+                        background: "#fff"
+                      }}>{med.name}</span>
+                      <span style={{
+                        fontSize: 13,
+                        color: "#bbbbbb",
+                        fontWeight: 500,
+                        marginBottom: 1
+                      }}>
+                        ({med.dosage})
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ ...medTimingStyle, fontSize: 17 }}>{med.period === "morning" ? "🌅" : med.period === "afternoon" ? "🌤️" : med.period === "night" ? "🌙" : ""}</span>
+                        <span style={{
+                          ...mealInstrStyle,
+                          marginLeft: 4,
+                          marginRight: 3,
+                          color: med.mealTiming === "before" ? "#e87a41" : "#3fc16b",
+                          fontWeight: 500
+                        }}>{med.mealTiming === "before" ? "⏱️ Before" : "🍽️ After"}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+          {/* Legend summary for weekly */}
+          <div style={{ color: "#bbb", fontSize: 14, textAlign: "center" }}>
+            <span style={medTimingStyle}>🌅</span> Morning
+            <span style={{ margin: "0 9px" }}></span>
+            <span style={medTimingStyle}>🌤️</span> Afternoon
+            <span style={{ margin: "0 9px" }}></span>
+            <span style={medTimingStyle}>🌙</span> Night
+            <span style={{ margin: "0 12px" }}></span>
+            <span style={{ color: "#e87a41", fontWeight: 600 }}>⏱️ Before</span> = Before Meal
+            <span style={{ margin: "0 7px" }}></span>
+            <span style={{ color: "#3fc16b", fontWeight: 600 }}>🍽️ After</span> = After Meal
+          </div>
+        </div>
         <div style={{ color: "#bbb", marginTop: 17, fontSize: 14 }}>
           {/* Legend */}
           <span style={{ marginRight: 14 }}><span style={medPillStyle}>Metformin</span> = Medicine name</span>
