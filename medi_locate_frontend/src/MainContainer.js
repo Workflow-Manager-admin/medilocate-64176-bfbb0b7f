@@ -27,9 +27,13 @@ function todayStr() {
   return new Date().toISOString().split("T")[0];
 }
 
+/**
+ * MedicineReminderSystem: Enhanced to show an extended sample list of tablets scheduled throughout the day.
+ * Now supports a realistic day schedule for demo purposes.
+ */
 // PUBLIC_INTERFACE
 function MedicineReminderSystem() {
-  // Mock medicines data
+  // Extended sample medicines for today
   const [medicines, setMedicines] = useState([
     {
       id: 1,
@@ -45,6 +49,86 @@ function MedicineReminderSystem() {
       dosage: "20mg",
       time: "20:00",
       days: ["Mon", "Wed", "Fri"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 3,
+      name: "Aspirin",
+      dosage: "75mg",
+      time: "07:30",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 4,
+      name: "Thyroxine",
+      dosage: "50mcg",
+      time: "06:30",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 5,
+      name: "Losartan",
+      dosage: "25mg",
+      time: "09:00",
+      days: ["Mon", "Thu", "Sat", "Sun"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 6,
+      name: "Omeprazole",
+      dosage: "20mg",
+      time: "19:00",
+      days: ["Mon", "Tue", "Fri", "Sun"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 7,
+      name: "Amoxicillin",
+      dosage: "500mg",
+      time: "13:00",
+      days: ["Mon", "Tue", "Wed"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 8,
+      name: "Vitamin D3",
+      dosage: "1000IU",
+      time: "10:30",
+      days: ["Mon", "Thu"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 9,
+      name: "Calcium",
+      dosage: "600mg",
+      time: "15:00",
+      days: ["Mon", "Wed", "Fri"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 10,
+      name: "Paracetamol",
+      dosage: "500mg",
+      time: "12:00",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 11,
+      name: "Cetirizine",
+      dosage: "10mg",
+      time: "21:15",
+      days: ["Mon", "Tue", "Thu", "Sat"],
+      records: { [todayStr()]: false }
+    },
+    {
+      id: 12,
+      name: "Clopidogrel",
+      dosage: "75mg",
+      time: "18:30",
+      days: ["Mon", "Tue", "Fri"],
       records: { [todayStr()]: false }
     }
   ]);
@@ -526,6 +610,23 @@ function PharmacyLocatorWithAddress() {
 // -------- MAIN CONTAINER --------------
 
 function MainContainer() {
+  // Real-time date and time state and effect
+  const [now, setNow] = React.useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  // Format helpers
+  function formatDateString(date) {
+    // Example: Monday, 8 July 2024
+    return date.toLocaleDateString(undefined, {
+      weekday: "long", year: "numeric", month: "long", day: "numeric"
+    });
+  }
+  function format24HourTime(date) {
+    return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second:"2-digit" });
+  }
+
   return (
     <div style={{
       minHeight:"100vh", background:COLORS.background, color: COLORS.text, paddingBottom:28
@@ -553,6 +654,39 @@ function MainContainer() {
           }}>Dark Mode</span>
         </div>
       </nav>
+      {/* Date and Time Bar */}
+      <div style={{
+        maxWidth:960, margin:"0 auto", padding:"0 28px", marginBottom:22
+      }}>
+        <div style={{
+          background: "linear-gradient(90deg, #303151 80%, #371a2b)", borderRadius: 12,
+          display:"flex", flexDirection:"row", alignItems:"center",
+          justifyContent: "center",
+          gap:28,
+          padding:"22px 0 8px 0",
+          marginBottom: 8,
+          boxShadow: '0 2px 5px rgba(0,0,0,0.19)'
+        }}>
+          <span style={{
+            fontWeight:600, fontSize: 22, color: COLORS.secondary, letterSpacing: "0.2px"
+          }}>
+            {formatDateString(now)}
+          </span>
+          <span style={{
+            marginLeft:18,
+            fontSize: 21,
+            fontFamily: "'Fira Mono', monospace",
+            fontWeight: 500,
+            color: COLORS.accent,
+            background: "#1c1d25",
+            borderRadius: 7,
+            padding: "8px 19px",
+            boxShadow: "0 1px 5px #34264a55"
+          }}>
+            {format24HourTime(now)}
+          </span>
+        </div>
+      </div>
       {/* Main layout */}
       <main>
         <div style={{
