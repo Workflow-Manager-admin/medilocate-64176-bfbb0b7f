@@ -289,34 +289,87 @@ function MedicineReminderSystem() {
 */
 
 function MainContainer() {
-  // Google Maps API Key for embedding map (new key, provided by requirements)
+  // Google Maps API Key for embedding map (provided by requirements)
   const GOOGLE_MAPS_API_KEY = "AIzaSyBtMQNFdZbNfN7urxPy2oxDVtG_3ozXfes";
 
-  // Functional Google Maps component
+  // PUBLIC_INTERFACE
+  /**
+   * EmbeddedGoogleMap uses Google Maps JavaScript API to render a live, interactive map.
+   * If iframe does not work, fallback to direct JS API loading for full functionality.
+   */
   function EmbeddedGoogleMap() {
-    // Default center: Chennai
-    const center_lat = 13.0827, center_lng = 80.2707;
-    const zoom = 12;
-    // You may adjust size as needed
-    const mapURL = `https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=${center_lat},${center_lng}&zoom=${zoom}&maptype=roadmap`;
+    // Default: map of Chennai
+    const center_lat = 13.0827, center_lng = 80.2707, zoom = 12;
+    const mapContainerStyle = {
+      width: "100%",
+      maxWidth: 600,
+      minWidth: 200,
+      height: 300,
+      margin: "0 auto",
+      border: 0,
+      borderRadius: 10,
+      boxShadow: "0 1px 8px rgba(82,47,244,0.12)",
+      marginTop: 30,
+      marginBottom: 24,
+      display: "block"
+    };
+
+    // Use useRef and useEffect to embed the JS API for more reliability
+    const mapRef = React.useRef(null);
+
+    React.useEffect(() => {
+      // Prevent re-initializing map
+      if (!window.google || !window.google.maps) {
+        // Dynamically load script only if not already present
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+        script.async = true;
+        script.onload = () => {
+          if (mapRef.current) {
+            // eslint-disable-next-line no-undef
+            new window.google.maps.Map(mapRef.current, {
+              center: { lat: center_lat, lng: center_lng },
+              zoom,
+              mapTypeId: "roadmap",
+              disableDefaultUI: false
+            });
+          }
+        };
+        document.body.appendChild(script);
+      } else {
+        if (mapRef.current) {
+          // eslint-disable-next-line no-undef
+          new window.google.maps.Map(mapRef.current, {
+            center: { lat: center_lat, lng: center_lng },
+            zoom,
+            mapTypeId: "roadmap",
+            disableDefaultUI: false
+          });
+        }
+      }
+      // No cleanup for test/demonstration. In production, remove script on unmount.
+      // eslint-disable-next-line
+    }, []);
+
     return (
-      <div style={{
-        margin: "0 auto",
-        marginTop: 30,
-        marginBottom: 24,
-        display: "flex",
-        justifyContent: "center"
-      }}>
-        <iframe
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        {/* Container for live Google Map */}
+        <div
+          ref={mapRef}
+          style={mapContainerStyle}
+          data-testid="google-map-container"
+        ></div>
+        {/* If desired, fallback to iframe below (commented, not rendered) */}
+        {/* <iframe
           title="Google Map"
-          src={mapURL}
+          src={`https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=${center_lat},${center_lng}&zoom=${zoom}&maptype=roadmap`}
           width="600"
           height="300"
-          style={{ border: 0, borderRadius: 10, width: "100%", maxWidth: 600, boxShadow:"0 1px 8px rgba(82,47,244,0.12)" }}
+          style={mapContainerStyle}
           allowFullScreen=""
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-        />
+        /> */}
       </div>
     );
   }
