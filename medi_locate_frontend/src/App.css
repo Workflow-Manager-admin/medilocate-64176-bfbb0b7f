@@ -6,6 +6,18 @@
   --border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
@@ -15,10 +27,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .navbar {
@@ -35,6 +71,18 @@ body {
   z-index: 100;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .logo {
   font-size: 1.25rem;
   font-weight: 600;
@@ -43,8 +91,32 @@ body {
   gap: 8px;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .logo-symbol {
   color: var(--base-light);
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .container {
@@ -53,6 +125,18 @@ body {
   padding: 0 24px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .hero {
@@ -65,10 +149,34 @@ body {
   gap: 24px;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .subtitle {
   color: var(--base-light);
   font-weight: 500;
   font-size: 1.1rem;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .title {
@@ -78,12 +186,36 @@ body {
   margin: 0;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .description {
   font-size: 1.1rem;
   line-height: 1.5;
   color: var(--text-secondary);
   max-width: 600px;
   margin-bottom: 16px;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .btn {
@@ -98,11 +230,47 @@ body {
   transition: background-color 0.2s ease;
 }
 
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
+}
+
 .btn:hover {
   background-color: #7691ff;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
 
 .btn-large {
   padding: 12px 24px;
   font-size: 1.1rem;
+}
+
+/* NavBar link overrides (adds active + focus style for dark mode) */
+.nav-link-active,
+.nav-link:focus {
+  background: var(--base-light);
+  color: #10172a !important;
+  text-decoration: none;
+}
+
+.nav-link {
+  transition: background 0.16s;
 }
